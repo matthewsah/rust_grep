@@ -9,10 +9,7 @@ fn main() {
         println!("Problem parsing arguments: {err}");
         process::exit(1);
     });
-
-    println!("Searching for {}", config.query);
-    println!("In file {}", config.file_path);
-
+    
     // error handling - we don't need the result returned from Ok
     if let Err(e) = rust_grep::run(config) {
         println!("Application error: {e}");
