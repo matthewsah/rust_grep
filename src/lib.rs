@@ -1,9 +1,11 @@
+use std::env;
 use std::error::Error;
 use std::fs;
 
 pub struct Config {
     pub query: String,
     pub file_path: String,
+    pub ignore_case: bool,
 }
 
 impl Config {
@@ -11,13 +13,19 @@ impl Config {
         if args.len() < 3 {
             return Err("not enough arguments");
         }
-        let query = args[1].clone();
-        let file_path = args[2].clone();
-        return Ok(Config { query, file_path });
+        let query: String = args[1].clone();
+        let file_path: String = args[2].clone();
+        let ignore_case: bool = env::var("IGNORE_CASE").is_ok();
+
+        return Ok(Config {
+            query,
+            file_path,
+            ignore_case,
+        });
     }
 }
 
-pub fn search_case_sensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let mut results: Vec<&str> = Vec::new();
 
     for line in contents.lines() {
@@ -45,7 +53,13 @@ pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a st
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let contents: String = fs::read_to_string(config.file_path).expect("Unable to read the file");
 
-    for line in search_case_sensitive(&config.query, &contents) {
+    let results: Vec<&str> = if config.ignore_case {
+        search_case_insensitive(&config.query, &contents)
+    } else {
+        search(&config.query, &contents)
+    };
+
+    for line in results {
         println!("{line}");
     }
 
@@ -63,10 +77,7 @@ mod tests {
 Rust:
 safe, fast, productive.
 Pick three.";
-        assert_eq!(
-            vec!["safe, fast, productive."],
-            search_case_sensitive(query, contents)
-        );
+        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
     }
 
     #[test]
