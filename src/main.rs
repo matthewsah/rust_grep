@@ -3,9 +3,7 @@ use std::process;
 use rust_grep::Config;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    // what is unwrap or else ||
-    let config: Config = Config::build(&args).unwrap_or_else(|err| {
+    let config: Config = Config::build(env::args()).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
